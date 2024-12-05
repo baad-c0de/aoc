@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::fmt::Display;
 
 use meaningful_lines::MeaningfulLines;
@@ -5,13 +7,20 @@ use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 fn main() {
-    let grid = Wordsearch::new(include_str!("../test_data1.txt"));
-    println!("{}", grid);
+    part1();
+    part2();
+}
 
+fn part1() {
+    let grid = Wordsearch::new(include_str!("../data.txt"));
     let found_words = grid.find_words("XMAS");
-    for found_word in found_words {
-        println!("{:?}", found_word);
-    }
+    println!("Number of times found: {}", found_words.len());
+}
+
+fn part2() {
+    let grid = Wordsearch::new(include_str!("../data.txt"));
+    let found_words = grid.find_x_words("MAS");
+    println!("Number of times found: {}", found_words.len());
 }
 
 struct Wordsearch {
@@ -38,6 +47,12 @@ struct FoundWord {
     start: (usize, usize),
     end: (usize, usize),
     direction: Direction,
+}
+
+#[derive(Debug)]
+struct FoundXWord {
+    word: String,
+    start: (usize, usize),
 }
 
 impl Wordsearch {
@@ -211,6 +226,73 @@ impl Wordsearch {
                         };
                         words.push(found_word);
                     }
+                }
+            }
+        }
+        words
+    }
+
+    fn find_x_word_at(&self, x: usize, y: usize, word: &str) -> Option<FoundXWord> {
+        assert_eq!(word.len() % 2, 1, "Word length must be odd");
+
+        let reach = (word.len() - 1) / 2;
+        if reach > x || reach > y || reach > self.width - x || reach > self.height - y {
+            return None;
+        }
+
+        // Check the top-left to bottom-right diagonal
+        {
+            let x = x - reach;
+            let y = y - reach;
+            if self
+                .find_word_in_direction(word, (x, y), Direction::DownRight)
+                .is_none()
+            {
+                // Check the bottom-right to top-left diagonal
+                let x = x + 2 * reach;
+                let y = y + 2 * reach;
+                if self
+                    .find_word_in_direction(word, (x, y), Direction::UpLeft)
+                    .is_none()
+                {
+                    return None;
+                }
+            }
+        }
+        // Check the bottom-left to top-right diagonal
+        {
+            let x = x - reach;
+            let y = y + reach;
+            if self
+                .find_word_in_direction(word, (x, y), Direction::UpRight)
+                .is_none()
+            {
+                // Check the top-right to bottom-left diagonal
+                let x = x + 2 * reach;
+                let y = y - 2 * reach;
+                if self
+                    .find_word_in_direction(word, (x, y), Direction::DownLeft)
+                    .is_none()
+                {
+                    return None;
+                }
+            }
+        }
+
+        Some(FoundXWord {
+            word: word.to_string(),
+            start: (x, y),
+        })
+    }
+
+    fn find_x_words(&self, word: &str) -> Vec<FoundXWord> {
+        let mut words = Vec::new();
+        let reach = (word.len() - 1) / 2;
+
+        for y in reach..self.height - reach {
+            for x in reach..self.width - reach {
+                if let Some(found_word) = self.find_x_word_at(x, y, word) {
+                    words.push(found_word);
                 }
             }
         }
