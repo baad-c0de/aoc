@@ -1,0 +1,8 @@
+[package]
+name = "day07"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+meaningful-lines = { path = "../../crates/meaningful-lines", version = "*" }
+iterbox = { path = "../../crates/iterbox", version = "*" }
