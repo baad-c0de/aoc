@@ -1,4 +1,3 @@
-use std::fmt::Debug;
 use std::vec;
 
 pub struct ExpandingWindow<'data> {
@@ -48,7 +47,7 @@ impl<'data, T> CombinationIterator<'data, T> {
 
 impl<'data, T> Iterator for CombinationIterator<'data, T>
 where
-    T: Copy + Debug,
+    T: Copy,
 {
     type Item = Vec<T>;
 
